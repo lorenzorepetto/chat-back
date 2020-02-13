@@ -9,7 +9,8 @@ export default ({db}: TInput) => {
     mongoose
       .connect(
         db,
-        { 
+        {   
+            useCreateIndex: true,
             useNewUrlParser: true,
             useUnifiedTopology: true 
         },

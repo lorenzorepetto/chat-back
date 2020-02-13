@@ -1,5 +1,9 @@
 import { Router, Request, Response } from 'express';
-import User, { IUser } from '../models/user.model';
+import Message from '../models/message.model';
+import Room, { IRoom } from '../models/room.model';
+import MessageController from '../controllers/message.controller';
+import User from '../models/user.model';
+
 
 const router: Router = Router();
 
@@ -7,69 +11,87 @@ const router: Router = Router();
 //===============================================
 //                  ROUTES
 //===============================================
-//===============================================
-//                  USER
-//===============================================
 
-router.post('/login', (req: Request, res: Response) => {
+// Get Sala Principal y Salas
+router.get('/data', async(req: Request, res: Response) => {
     
-    const email = req.body.email;
-    const name = req.body.name;
-      
-    User.find( { email }, (err, userDB: IUser) => {
-        if (err) {
-            return res.status(500).json({
-                ok: false,
-                err
+    const rooms = await Room.find({})
+            .populate({ path: 'owner', model: User })
+            .exec().then( (rooms: IRoom[]) => rooms )
+                   .catch( err => {
+                        return res.status(500).json({
+                            ok: false,
+                            err
+                        })
+                   })
+    
+    const room_id = await Room.findOne({ name: 'PRINCIPAL' })
+             .then( (room: any) => room._id )
+             .catch( err => {
+                 return res.status(500).json({
+                     ok: false,
+                     err
+                 })
+             })
+
+    Message.find({ room: room_id })
+            .select('_id text date user')
+            .sort({ date: 'asc' })
+            .populate({path: 'user', model: User})
+            .exec( (err, messages) => {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        err
+                    })
+                }
+                res.json({
+                    ok:true,
+                    rooms,
+                    messages
+                })
             })
-        }
-        if (userDB) {
-            return res.status(400).json({
-                ok: true,
-                userDB
-            }) 
-        }
-    })
+})
 
-    // Crear usuario
-    const user = new User({ email, name });
-    user.save( (err, userDB) => {
-        if (err) {
-            return res.status(500).json({
-                ok: false,
-                err
-            })  
-        }
-        return res.json({
-            ok: true,
-            userDB
-        })
-    })
-});
+// Get mensajes por RoomID
+router.get('/messages/:room_id', async(req: Request, res: Response) => {
 
-
-
-
-
-router.get('/mensajes', (req: Request, res: Response) => {
-    
-    res.json({
-        ok:true,
-        mensaje:'hola'
-    })
-
+    Message.find({ room: req.params.room_id })
+            .select('_id text date user')
+            .sort({ date: 'asc' })
+            .populate({path: 'user', model: User})
+            .exec( (err, messages) => {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        err
+                    })
+                }
+                res.json({
+                    ok:true,
+                    messages
+                })
+            })
 })
 
 
-router.post('/mensajes/:id', (req: Request, res: Response) => {
+
+
+//===============================================
+//                  PRUEBA
+//===============================================
+router.post('/messages',  async(req: Request, res: Response) => {
     
-    const id = req.params.id;
-    const body = req.body.body;
+    const message = MessageController.CreateMessage({
+        text: req.body.text,
+        user: req.body.user,
+        room: req.body.room
+    })
+    
 
     res.json({
-        ok:true,
-        body,
-        id
+        ok: true,
+        message
     })
 
 })

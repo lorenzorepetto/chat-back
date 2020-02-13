@@ -7,7 +7,8 @@ import { IRoom } from './room.model';
 //===============================================
 export interface IMessage extends Document {
     text: string,
-    owner: IUser['_id'],
+    date: Date,
+    user: IUser['_id'],
     room: IRoom['_id']
 }
 
@@ -16,8 +17,9 @@ export interface IMessage extends Document {
 //===============================================
 const MessageSchema: Schema = new Schema({
   text: { type: String, required: true },
-  owner: { type: Schema.Types.ObjectId, required: true },
-  room: { type: Schema.Types.ObjectId, required: true },
+  date: { type: Date, required: true },
+  user: { type: Schema.Types.ObjectId, required: true, ref: 'user' },
+  room: { type: Schema.Types.ObjectId, required: true, ref: 'room' },
 });
 
 
