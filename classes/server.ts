@@ -22,7 +22,7 @@ export default class Server {
         this.port = SERVER_PORT; 
         this.httpServer = new http.Server( this.app );
         this.io = socketIO( this.httpServer );
-        this.escucharSockets();
+        this.listen();
     }
 
     // Singleton
@@ -39,16 +39,26 @@ export default class Server {
     //===============================================
     //                  Privados
     //===============================================
-    private escucharSockets() {
+    private listen() {
         console.log("Escuchando conexiones - sockets");
         this.io.on('connection', client => {
-            console.log('Cliente conectado');
             
-            // Desconectar
-            socket.desconectar(client);
+            console.log('Cliente conectado', client.id);
+            
+            // Conectar
+            socket.connect(client);
 
+            // Desconectar
+            socket.disconnect(client, this.io);
+            
+            // Configurar
+            socket.setUser(client, this.io);
+            
+            // Obtener lista
+            socket.getUserList(client, this.io);
+            
             // Mensajes
-            socket.mensaje(client, this.io);
+            socket.message(client, this.io);
 
         })
     }

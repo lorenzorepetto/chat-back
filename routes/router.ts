@@ -25,8 +25,8 @@ router.get('/data', async(req: Request, res: Response) => {
                         })
                    })
     
-    const room_id = await Room.findOne({ name: 'PRINCIPAL' })
-             .then( (room: any) => room._id )
+    const currentRoom = await Room.findOne({ name: 'PRINCIPAL' })
+             .then( (room: any) => room )
              .catch( err => {
                  return res.status(500).json({
                      ok: false,
@@ -34,7 +34,7 @@ router.get('/data', async(req: Request, res: Response) => {
                  })
              })
 
-    Message.find({ room: room_id })
+    Message.find({ room: currentRoom._id })
             .select('_id text date user')
             .sort({ date: 'asc' })
             .populate({path: 'user', model: User})
@@ -48,6 +48,7 @@ router.get('/data', async(req: Request, res: Response) => {
                 res.json({
                     ok:true,
                     rooms,
+                    currentRoom,
                     messages
                 })
             })
