@@ -1,4 +1,4 @@
-import { UserSocket, NO_NAME } from './user-socket';
+import { UserSocket, NO_NAME, UserSocketInput } from './user-socket';
 
 
 export class UserList {
@@ -17,10 +17,10 @@ export class UserList {
         return user;
     }
 
-    public setUser( user: UserSocket ) {
+    public setUser( id: string, user: UserSocketInput ) {
         for (let u of this.list) {
-            if( u.id === user.id ) {
-                u.image = user.image;
+            if( u.id === id ) {
+                u.picture = user.picture;
                 u.name = user.name;
                 u.room_id = user.room_id;
                 break;

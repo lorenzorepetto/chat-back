@@ -1,35 +1,66 @@
 import Message from "../models/message.model";
-import { IUser } from "../models/user.model";
+import User, { IUser } from "../models/user.model";
 import { IRoom } from "../models/room.model";
 import { IMessage } from '../models/message.model';
 
 //===============================================
 //                  INTERFACE
 //===============================================
-interface ICreateMessageInput {
+export interface ICreateMessageInput {
     text: string,
-    user: IUser['_id'],
-    room: IRoom['_id']
+    user: IUser,
+    room: string
 }
 
 //===============================================
 //                  FUNCTIONS
 //===============================================
-async function CreateMessage (message: ICreateMessageInput): Promise<IMessage> {
-    return await Message.create({
-      text: message.text,
-      date: new Date(),
-      user: message.user,
-      room: message.room
-    })
-      .then((data: IMessage) => {
-        return data;
+async function CreateMessage (message: ICreateMessageInput) {
+  
+  // Buscar usuario
+  let user = await User.findOne({ email: message.user.email }, (err, userDB) => {
+    if (err) throw err;
+    if (!userDB) {
+      let newUser = new User({
+        email: message.user.email,
+        name: message.user.name,
+        picture: message.user.picture
       })
-      .catch((error: Error) => {
-        throw error;
-      });
+      newUser.save( (err, userDB) => {
+        if (err) throw err;
+        return  userDB;
+      })
+    } else {
+      return userDB
+    }
+  })
+
+  if (user) {
+    // Crear Mensaje
+    return await Message.create({
+        text: message.text,
+        date: new Date(),
+        user: user._id,
+        room: message.room
+      })
+        .then(async(messageDB: IMessage) => {
+          let message = await messageDB.populate({path: 'user', model: User}).execPopulate();
+          return message;
+        })
+        .catch((error: Error) => {
+          throw error;
+        });    
+  }
+  else {
+    return null;
   }
   
-  export default {
-    CreateMessage
-  };
+}
+
+  
+//===============================================
+//                  EXPORTS
+//===============================================
+export default {
+  CreateMessage
+};

@@ -83,16 +83,16 @@ router.get('/messages/:room_id', async(req: Request, res: Response) => {
 //===============================================
 router.post('/messages',  async(req: Request, res: Response) => {
     
-    const message = MessageController.CreateMessage({
-        text: req.body.text,
-        user: req.body.user,
-        room: req.body.room
-    })
+    // const message = MessageController.CreateMessage({
+    //     text: req.body.text,
+    //     user: req.body.user,
+    //     room: req.body.room
+    // })
     
 
     res.json({
         ok: true,
-        message
+        // message
     })
 
 })

@@ -53,7 +53,7 @@ export default class Server {
             
             // Configurar
             socket.setUser(client, this.io);
-            
+
             // Obtener lista
             socket.getUserList(client, this.io);
             

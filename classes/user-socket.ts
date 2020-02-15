@@ -7,15 +7,22 @@ export class UserSocket {
     
     public id: string;
     public name: string;
-    public image: string;
+    public picture: string;
     public room_id: string;
-    public state: validStates;
+    public status: validStates;
 
     constructor( id: string ) {
         this.id = id;
         this.name = NO_NAME;
         this.room_id = NO_ROOM;
-        this.image = NO_IMAGE;
-        this.state = 'ONLINE';
+        this.picture = NO_IMAGE;
+        this.status = 'ONLINE';
     }
+}
+
+
+export interface UserSocketInput {
+    name: string;
+    picture: string;
+    room_id: string;
 }

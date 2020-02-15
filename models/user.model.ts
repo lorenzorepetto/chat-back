@@ -7,7 +7,7 @@ const uniqueValidator = require('mongoose-unique-validator')
 export interface IUser extends Document {
   email: string;
   name: string;
-  image?: string;
+  picture: string;
 }
 
 //===============================================
@@ -16,7 +16,7 @@ export interface IUser extends Document {
 const UserSchema: Schema = new Schema({
   email: { type: String, required: true, unique: true },
   name: { type: String, required: true },
-  image: { type: String, required: false }
+  picture: { type: String, required: true }
 });
 
 
