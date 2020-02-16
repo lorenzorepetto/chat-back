@@ -1,4 +1,4 @@
-import { UserSocket, NO_NAME, UserSocketInput } from './user-socket';
+import { UserSocket, NO_NAME, UserSocketInput, validStates } from './user-socket';
 
 
 export class UserList {
@@ -28,6 +28,13 @@ export class UserList {
         }
         console.log('Actualizando usuario');
         console.log(this.list);
+    }
+
+    public setStatus( id: string, status: validStates ) {
+        const user = this.getUser(id);
+        if (user) {
+            user.status = status;
+        }
     }
 
     //===============================================

@@ -36,7 +36,8 @@ router.get('/data', async(req: Request, res: Response) => {
 
     Message.find({ room: currentRoom._id })
             .select('_id text date user')
-            .sort({ date: 'asc' })
+            .sort({ date: -1 })
+            .limit(8)
             .populate({path: 'user', model: User})
             .exec( (err, messages) => {
                 if (err) {
@@ -45,6 +46,9 @@ router.get('/data', async(req: Request, res: Response) => {
                         err
                     })
                 }
+                // Error con el orden
+                messages = messages.reverse();
+                
                 res.json({
                     ok:true,
                     rooms,

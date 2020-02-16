@@ -1,7 +1,7 @@
 import { Socket } from 'socket.io';
 import socketIO from 'socket.io';
 import { UserList } from '../classes/user-list';
-import { UserSocket, UserSocketInput } from '../classes/user-socket';
+import { UserSocket, UserSocketInput, validStates } from '../classes/user-socket';
 import MessageController, { ICreateMessageInput } from '../controllers/message.controller';
 
 // Lista
@@ -52,6 +52,22 @@ export const setUser = ( client: Socket, io: socketIO.Server ) => {
     })
 }
 
+// Cambiar estado
+export const setStatus = ( client: Socket, io: socketIO.Server ) => {
+
+    client.on('set-status', (payload: {status: validStates, room_id: string}) => {
+        
+        users.setStatus(client.id, payload.status);
+        // unirse a la sala
+        client.join(payload.room_id);
+
+        io.to(payload.room_id).emit('active-users', users.getUsersInRoom(payload.room_id));
+        
+    })
+}
+ 
+
+
 // Obtener usuarios
 export const getUserList = ( client: Socket, io: socketIO.Server ) => {
     
@@ -81,6 +97,22 @@ export const message = ( client: Socket, io: socketIO.Server ) => {
         promiseMessage.then( message => {
             io.to(payload.room).emit('new-message', message);
         })
+    })
+}
+
+
+// Eliminar mensaje
+export const deleteMessage = ( client: Socket, io: socketIO.Server ) => {
+    
+    client.on('delete-message', async(payload: { message_id: string, room_id: string}) => {
+        
+        // unirse a la sala
+        client.join(payload.room_id);
+        // Eliminar mensaje en BD
+        MessageController.DeleteMessage(payload.message_id)
+            .then( (message) => {
+                io.to(payload.room_id).emit('update-messages', message);
+            })
     })
 }
 

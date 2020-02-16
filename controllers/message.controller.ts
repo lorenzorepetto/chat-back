@@ -15,7 +15,7 @@ export interface ICreateMessageInput {
 //===============================================
 //                  FUNCTIONS
 //===============================================
-async function CreateMessage (message: ICreateMessageInput) {
+async function CreateMessage (message: ICreateMessageInput){
   
   // Buscar usuario
   let user = await User.findOne({ email: message.user.email }, (err, userDB) => {
@@ -58,9 +58,40 @@ async function CreateMessage (message: ICreateMessageInput) {
 }
 
   
+
+async function DeleteMessage (message_id: IMessage['_id']) {
+  return new Promise( (resolve, reject) => {
+    Message.findByIdAndRemove(message_id, (err, deletedMessage) => {
+      if (err) throw err;
+      console.log('Se borro: ', deletedMessage);
+      resolve( deletedMessage)
+    })
+  }) 
+}
+
+
+async function GetMessagesInRoom( room_id:string ) {
+  return new Promise( (resolve, reject) => {
+    Message.find({ room: room_id })
+              .select('_id text date user')
+              .sort({ date: -1 })
+              .limit(8)
+              .populate({path: 'user', model: User})
+              .exec( (err, messagesDB) => {
+                  if (err) throw err;
+                  messagesDB = messagesDB.reverse();
+                  resolve(messagesDB);
+              })
+  })
+}
+
+
+
 //===============================================
 //                  EXPORTS
 //===============================================
 export default {
-  CreateMessage
+  CreateMessage,
+  DeleteMessage,
+  GetMessagesInRoom
 };
