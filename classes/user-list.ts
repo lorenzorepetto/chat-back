@@ -20,6 +20,7 @@ export class UserList {
     public setUser( id: string, user: UserSocketInput ) {
         for (let u of this.list) {
             if( u.id === id ) {
+                u.email = user.email;
                 u.picture = user.picture;
                 u.name = user.name;
                 u.room_id = user.room_id;

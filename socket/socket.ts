@@ -30,7 +30,6 @@ export const disconnect = ( client: Socket, io: socketIO.Server ) => {
         
         if(user) {
             io.to(user.room_id).emit('active-users', users.getUsersInRoom(user.room_id));
-            console.log(users.getUsersInRoom(user.room_id));
         }
         
         
@@ -93,10 +92,13 @@ export const message = ( client: Socket, io: socketIO.Server ) => {
         client.join(payload.room);
         
         // Guardar mensaje en BD
-        const promiseMessage = MessageController.CreateMessage(payload);
-        promiseMessage.then( message => {
-            io.to(payload.room).emit('new-message', message);
-        })
+        MessageController.CreateMessage(payload)
+            .then( () => {
+                MessageController.GetMessagesInRoom(payload.room)
+                    .then( (messages) => {
+                        io.to(payload.room).emit('update-messages', messages);
+                    })
+            })
     })
 }
 
@@ -110,8 +112,11 @@ export const deleteMessage = ( client: Socket, io: socketIO.Server ) => {
         client.join(payload.room_id);
         // Eliminar mensaje en BD
         MessageController.DeleteMessage(payload.message_id)
-            .then( (message) => {
-                io.to(payload.room_id).emit('update-messages', message);
+            .then( () => {
+                MessageController.GetMessagesInRoom(payload.room_id)
+                    .then( (messages) => {
+                        io.to(payload.room_id).emit('update-messages', messages);
+                    })
             })
     })
 }
