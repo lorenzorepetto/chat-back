@@ -54,9 +54,7 @@ export default class Server {
             // Configurar
             socket.setUser(client, this.io);
             socket.setStatus(client, this.io);
-            
-            // Obtener lista
-            socket.getUserList(client, this.io);
+            socket.changeRoom(client, this.io);
             
             // Mensajes
             socket.message(client, this.io);

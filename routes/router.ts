@@ -15,16 +15,6 @@ const router: Router = Router();
 // Get Sala Principal y Salas
 router.get('/data', async(req: Request, res: Response) => {
     
-    const rooms = await Room.find({})
-            .populate({ path: 'owner', model: User })
-            .exec().then( (rooms: IRoom[]) => rooms )
-                   .catch( err => {
-                        return res.status(500).json({
-                            ok: false,
-                            err
-                        })
-                   })
-    
     const currentRoom = await Room.findOne({ name: 'PRINCIPAL' })
              .then( (room: any) => room )
              .catch( err => {
@@ -34,72 +24,148 @@ router.get('/data', async(req: Request, res: Response) => {
                  })
              })
 
-    Message.find({ room: currentRoom._id })
-            .select('_id text date user')
-            .sort({ date: -1 })
-            .limit(8)
-            .populate({path: 'user', model: User})
-            .exec( (err, messages) => {
-                if (err) {
-                    return res.status(500).json({
-                        ok: false,
-                        err
-                    })
-                }
-                // Error con el orden
-                messages = messages.reverse();
-                
-                res.json({
-                    ok:true,
-                    rooms,
-                    currentRoom,
-                    messages
-                })
-            })
-})
+    if (!currentRoom) {
+        return res.status(400).json({
+            ok: false,
+            err: {
+                message: 'No existe sala con ese ID'
+            }
+        })
+    }
 
-// Get mensajes por RoomID
-router.get('/messages/:room_id', async(req: Request, res: Response) => {
-
-    Message.find({ room: req.params.room_id })
-            .select('_id text date user')
-            .sort({ date: 'asc' })
-            .populate({path: 'user', model: User})
-            .exec( (err, messages) => {
-                if (err) {
-                    return res.status(500).json({
-                        ok: false,
-                        err
-                    })
-                }
-                res.json({
-                    ok:true,
-                    messages
-                })
+    MessageController.GetMessagesInRoom( currentRoom._id )
+        .then( messages => {
+            return res.json({
+                ok:true,
+                currentRoom,
+                messages
             })
+        })
+        .catch( err => res.status(500).json({
+            ok: false,
+            err
+        }))
 })
 
 
-
-
-//===============================================
-//                  PRUEBA
-//===============================================
-router.post('/messages',  async(req: Request, res: Response) => {
+// Rooms
+router.get('/room', (req: Request, res: Response) => {
     
-    // const message = MessageController.CreateMessage({
-    //     text: req.body.text,
-    //     user: req.body.user,
-    //     room: req.body.room
-    // })
-    
+    Room.find({})
+        .populate({ path: 'owner', model: User })
+        .exec( (err, rooms) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    err
+                })
+            }
+            res.json({
+                ok: true,
+                rooms
+            })
+        })
+})
 
-    res.json({
-        ok: true,
-        // message
+
+router.post('/room', async(req: Request, res: Response) => {
+    let body =req.body;
+    
+    const user = await User.findOne({email: body.email})
+                    .then( user => user)
+                   
+    if (!user) {
+        return res.status(400).json({
+            ok: false,
+            err: {
+                message: 'No existe usuario con ese email'
+            }
+        }) 
+    }
+
+    const newRoom = new Room({
+        name: body.name,
+        description: body.description,
+        owner: user._id
+    })
+    
+    newRoom.save( (err, room) => {
+        if (err) {
+            return res.status(500).json({
+                ok: false,
+                err
+            })
+        }
+        res.json({
+          ok: true,
+          room  
+        })
+    })
+})
+
+
+router.delete('/room/:room_id', (req: Request, res: Response) => {
+
+    Message.deleteMany({ room: req.params.room_id }, err => {
+        if (err) {
+            return res.status(500).json({
+                ok: false,
+                err
+            })
+        }
+    })
+
+    Room.findByIdAndRemove(req.params.room_id, (err, room) => {
+        if (err) {
+            return res.status(500).json({
+                ok: false,
+                err
+            })
+        }
+        res.json({
+            ok: true,
+            room
+        })
     })
 
 })
+
+
+// Get mensajes por RoomID
+router.get('/room/:room_id', async(req: Request, res: Response) => {
+    
+    const currentRoom = await Room.findById(req.params.room_id)
+             .then( (room: any) => room )
+             .catch( err => {
+                 return res.status(500).json({
+                     ok: false,
+                     err
+                 })
+             })
+
+    if (!currentRoom) {
+        return res.status(400).json({
+            ok: false,
+            err: {
+                message: 'No existe sala con ese ID'
+            }
+        })
+    }
+
+    MessageController.GetMessagesInRoom( currentRoom._id )
+        .then( messages => {
+            return res.json({
+                ok:true,
+                currentRoom,
+                messages
+            })
+        })
+        .catch( err => res.status(500).json({
+            ok: false,
+            err
+        }))
+})
+
 
 
 //===============================================

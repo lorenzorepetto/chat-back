@@ -7,7 +7,8 @@ const uniqueValidator = require('mongoose-unique-validator')
 //===============================================
 export interface IRoom extends Document {
   name: string,
-  owner: IUser['_id']
+  owner: IUser['_id'],
+  description?: string
 }
 
 //===============================================
@@ -15,6 +16,7 @@ export interface IRoom extends Document {
 //===============================================
 const RoomSchema: Schema = new Schema({
   name: { type: String, required: true, unique: true },
+  description: { type: String, required: false },
   owner: { type: Schema.Types.ObjectId, required: false, ref: 'owner' }
 });
 

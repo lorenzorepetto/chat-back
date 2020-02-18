@@ -66,18 +66,30 @@ export const setStatus = ( client: Socket, io: socketIO.Server ) => {
 }
  
 
+// Cambiar de sala
+export const changeRoom = ( client: Socket, io: socketIO.Server ) => {
 
-// Obtener usuarios
-export const getUserList = ( client: Socket, io: socketIO.Server ) => {
-    
-    client.on('get-users', (room_id: string) => {
-        // unirse a la sala
-        client.join(room_id);
-        io.to(room_id).emit('active-users', users.getUsersInRoom(room_id))
+    client.on('change-room', (payload: { room_id: string }) => {
+        
+        let user = users.getUser( client.id );
+        if( !user ) return;
+        
+        // Dejar sala anterior
+        client.leave(user.room_id);
+        
+        // Setear sala
+        let old_room = user.room_id;
+        users.setRoom(client.id, payload.room_id);
+        
+        // Unirse a nueva sala
+        client.join(payload.room_id);
+        
+        io.to(old_room).emit('active-users', users.getUsersInRoom(old_room));
+        io.to(payload.room_id).emit('active-users', users.getUsersInRoom(payload.room_id));
+
     })
 
 }
-
 
 //===============================================
 //                  MENSAJES

@@ -75,7 +75,7 @@ async function GetMessagesInRoom( room_id:string ) {
     Message.find({ room: room_id })
               .select('_id text date user')
               .sort({ date: -1 })
-              .limit(8)
+              .limit(12)
               .populate({path: 'user', model: User})
               .exec( (err, messagesDB) => {
                   if (err) throw err;

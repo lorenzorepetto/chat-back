@@ -38,6 +38,16 @@ export class UserList {
         }
     }
 
+
+    public setRoom( id: string, room_id: string) {
+        for (let u of this.list) {
+            if( u.id === id ) {
+                u.room_id = room_id;
+                break;
+            }   
+        }
+    }
+
     //===============================================
     //                  GET
     //===============================================
