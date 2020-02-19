@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IUser } from './user.model';
+import Message from './message.model';
 const uniqueValidator = require('mongoose-unique-validator')
 
 //===============================================
@@ -25,6 +26,14 @@ const RoomSchema: Schema = new Schema({
 RoomSchema.plugin( uniqueValidator, {
     message: '{PATH} debe ser único'
 })
+
+//===============================================
+//                  MIDDLEWARES
+//===============================================
+RoomSchema.pre('remove', function(next) {
+  Message.remove({room: this._id}).exec();
+  next();
+});
 
 //===============================================
 //                  EXPORTS

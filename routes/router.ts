@@ -12,16 +12,16 @@ const router: Router = Router();
 //                  ROUTES
 //===============================================
 
-// Get Sala Principal y Salas
+
+//===============================================
+//                  GET
+//===============================================
 router.get('/data', async(req: Request, res: Response) => {
     
     const currentRoom = await Room.findOne({ name: 'PRINCIPAL' })
              .then( (room: any) => room )
              .catch( err => {
-                 return res.status(500).json({
-                     ok: false,
-                     err
-                 })
+                 throw err;
              })
 
     if (!currentRoom) {
@@ -48,7 +48,6 @@ router.get('/data', async(req: Request, res: Response) => {
 })
 
 
-// Rooms
 router.get('/room', (req: Request, res: Response) => {
     
     Room.find({})
@@ -68,6 +67,40 @@ router.get('/room', (req: Request, res: Response) => {
 })
 
 
+router.get('/room/:room_id', async(req: Request, res: Response) => {
+    
+    const currentRoom = await Room.findById(req.params.room_id)
+             .then( (room: any) => room )
+             .catch( err => {
+                  throw err;
+             })
+
+    if (!currentRoom) {
+        return res.status(400).json({
+            ok: false,
+            err: {
+                message: 'No existe sala con ese ID'
+            }
+        })
+    }
+
+    MessageController.GetMessagesInRoom( currentRoom._id )
+        .then( messages => {
+            return res.json({
+                ok:true,
+                currentRoom,
+                messages
+            })
+        })
+        .catch( err => res.status(500).json({
+            ok: false,
+            err
+        }))
+})
+
+//===============================================
+//                  POST
+//===============================================
 router.post('/room', async(req: Request, res: Response) => {
     let body =req.body;
     
@@ -104,67 +137,44 @@ router.post('/room', async(req: Request, res: Response) => {
 })
 
 
+//===============================================
+//                  DELETE
+//===============================================
 router.delete('/room/:room_id', (req: Request, res: Response) => {
 
-    Message.deleteMany({ room: req.params.room_id }, err => {
+    Room.findById(req.params.room_id, (err, room) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
                 err
             })
         }
-    })
-
-    Room.findByIdAndRemove(req.params.room_id, (err, room) => {
-        if (err) {
-            return res.status(500).json({
+        if (!room) {
+            return res.status(400).json({
                 ok: false,
-                err
+                err: {
+                    message: 'No existe sala con ese ID'
+                }
             })
         }
-        res.json({
-            ok: true,
-            room
-        })
-    })
 
-})
-
-
-// Get mensajes por RoomID
-router.get('/room/:room_id', async(req: Request, res: Response) => {
-    
-    const currentRoom = await Room.findById(req.params.room_id)
-             .then( (room: any) => room )
-             .catch( err => {
-                 return res.status(500).json({
-                     ok: false,
-                     err
-                 })
-             })
-
-    if (!currentRoom) {
-        return res.status(400).json({
-            ok: false,
-            err: {
-                message: 'No existe sala con ese ID'
+        room.remove( (err, room) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    err
+                })
             }
-        })
-    }
-
-    MessageController.GetMessagesInRoom( currentRoom._id )
-        .then( messages => {
-            return res.json({
+            res.json({
                 ok:true,
-                currentRoom,
-                messages
+                room
             })
-        })
-        .catch( err => res.status(500).json({
-            ok: false,
-            err
-        }))
+        });
+        
+    })
+
 })
+
 
 
 
