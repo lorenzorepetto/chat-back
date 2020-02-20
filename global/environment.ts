@@ -12,15 +12,6 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'dev';
 
 
 //===============================================
-//                  TOKEN
-//===============================================
-process.env.EXPIRA_TOKEN = '48h';
-
-// Seed
-process.env.SEED = process.env.SEED || 'este-es-el-seed-dev';
-
-
-//===============================================
 //                BASE DE DATOS
 //===============================================
 let urlDB;

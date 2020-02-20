@@ -1,6 +1,5 @@
 import Message from "../models/message.model";
 import User, { IUser } from "../models/user.model";
-import { IRoom } from "../models/room.model";
 import { IMessage } from '../models/message.model';
 
 //===============================================
@@ -62,12 +61,22 @@ async function CreateMessage (message: ICreateMessageInput){
 async function DeleteMessage (message_id: IMessage['_id']) {
   return new Promise( (resolve, reject) => {
     Message.findByIdAndRemove(message_id, (err, deletedMessage) => {
-      if (err) throw err;
-      console.log('Se borro: ', deletedMessage);
+      if (err) reject(err);
       resolve( deletedMessage)
     })
   }) 
 }
+
+
+async function DeleteAllMessagesInRoomBy (email: IUser['email'], room_id: IMessage['room']) {
+  return new Promise( (resolve, reject) => {
+    Message.deleteMany({ room: room_id }, (err) => {
+      if (err) reject(err);
+      resolve();
+    })
+  }) 
+}
+
 
 
 async function GetMessagesInRoom( room_id:string ) {
@@ -75,15 +84,35 @@ async function GetMessagesInRoom( room_id:string ) {
     Message.find({ room: room_id })
               .select('_id text date user')
               .sort({ date: -1 })
-              .limit(12)
+              .limit(8)
               .populate({path: 'user', model: User})
-              .exec( (err, messagesDB) => {
-                  if (err) throw err;
-                  messagesDB = messagesDB.reverse();
-                  resolve(messagesDB);
+              .exec( (err, messages) => {
+                  if (err) reject(err);
+                  messages = messages.reverse();
+                  Message.countDocuments({room: room_id}, (err, total) => {
+                    if (err) reject(err);
+                    resolve({messages, total});
+                  })
               })
   })
 }
+
+
+async function GetAllMessagesInRoom( room_id:string ) {
+  return new Promise( (resolve, reject) => {
+    Message.find({ room: room_id })
+              .select('_id text date user')
+              .sort({ date: -1 })
+              .populate({path: 'user', model: User})
+              .exec( (err, messages) => {
+                  if (err) reject(err);
+                  messages = messages.reverse();
+                  resolve(messages)
+              })
+  })
+}
+
+
 
 
 
@@ -93,5 +122,7 @@ async function GetMessagesInRoom( room_id:string ) {
 export default {
   CreateMessage,
   DeleteMessage,
-  GetMessagesInRoom
+  GetMessagesInRoom,
+  GetAllMessagesInRoom,
+  DeleteAllMessagesInRoomBy
 };

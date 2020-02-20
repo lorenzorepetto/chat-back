@@ -42,9 +42,6 @@ export default class Server {
     private listen() {
         console.log("Escuchando conexiones - sockets");
         this.io.on('connection', client => {
-            
-            console.log('Cliente conectado', client.id);
-            
             // Conectar
             socket.connect(client);
 
@@ -59,6 +56,7 @@ export default class Server {
             // Mensajes
             socket.message(client, this.io);
             socket.deleteMessage(client, this.io);
+            socket.deleteAllMessages(client, this.io);
 
         })
     }

@@ -24,8 +24,6 @@ export const connect = ( client: Socket ) => {
 // Desconectar
 export const disconnect = ( client: Socket, io: socketIO.Server ) => {
     client.on('disconnect', () => {
-        console.log('Cliente desconectado');
-        
         const user = users.deleteUser(client.id);
         
         if(user) {
@@ -98,7 +96,6 @@ export const changeRoom = ( client: Socket, io: socketIO.Server ) => {
 export const message = ( client: Socket, io: socketIO.Server ) => {
     
     client.on('message', (payload: ICreateMessageInput) => {
-        console.log('Mensaje recibido: ', payload);
         
         // unirse a la sala
         client.join(payload.room);
@@ -124,6 +121,24 @@ export const deleteMessage = ( client: Socket, io: socketIO.Server ) => {
         client.join(payload.room_id);
         // Eliminar mensaje en BD
         MessageController.DeleteMessage(payload.message_id)
+            .then( () => {
+                MessageController.GetMessagesInRoom(payload.room_id)
+                    .then( (messages) => {
+                        io.to(payload.room_id).emit('update-messages', messages);
+                    })
+            })
+    })
+}
+
+// Eliminar todos los mensajes en sala
+export const deleteAllMessages = ( client: Socket, io: socketIO.Server ) => {
+    
+    client.on('delete-all-messages', async(payload: { email: string, room_id: string}) => {
+        
+        // unirse a la sala
+        client.join(payload.room_id);
+        // Eliminar mensaje en BD
+        MessageController.DeleteAllMessagesInRoomBy(payload.email, payload.room_id)
             .then( () => {
                 MessageController.GetMessagesInRoom(payload.room_id)
                     .then( (messages) => {

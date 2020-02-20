@@ -12,8 +12,6 @@ export class UserList {
     //===============================================
     public add( user: UserSocket ) {
         this.list.push(user);
-        console.log('Agregando usuario');
-        console.log(this.list);
         return user;
     }
 
@@ -27,8 +25,6 @@ export class UserList {
                 break;
             }   
         }
-        console.log('Actualizando usuario');
-        console.log(this.list);
     }
 
     public setStatus( id: string, status: validStates ) {
@@ -69,7 +65,6 @@ export class UserList {
     public deleteUser( id: string ) {
         const tempUser = this.getUser(id);
         this.list = this.list.filter( user => user.id !== id );
-        console.log(this.list);
         return tempUser;
     }
     
