@@ -3,6 +3,7 @@ import socketIO from 'socket.io';
 import { UserList } from '../classes/user-list';
 import { UserSocket, UserSocketInput, validStates } from '../classes/user-socket';
 import MessageController, { ICreateMessageInput } from '../controllers/message.controller';
+import UserController from '../controllers/user.controller';
 
 // Lista
 export const users: UserList = new UserList();
@@ -40,12 +41,19 @@ export const setUser = ( client: Socket, io: socketIO.Server ) => {
 
     client.on('set-user', (payload: UserSocketInput) => {
         
+        // Setear usuario
         users.setUser(client.id, payload);
-        // unirse a la sala
-        client.join(payload.room_id);
-
-        io.to(payload.room_id).emit('active-users', users.getUsersInRoom(payload.room_id));
-        
+        // Crearlo en la db
+        UserController.CreateUser(payload)
+            .then( () => {
+                // unirse a la sala
+                client.join(payload.room_id);
+                io.to(payload.room_id).emit('active-users', users.getUsersInRoom(payload.room_id));
+            })
+            .catch( err => {
+                console.log(err);
+                io.to(client.id).emit('set-user-callback', {error: err})
+            })        
     })
 }
 

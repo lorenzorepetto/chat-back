@@ -23,23 +23,9 @@ function CreateMessage(message) {
         let user = yield user_model_1.default.findOne({ email: message.user.email }, (err, userDB) => {
             if (err)
                 throw err;
-            if (!userDB) {
-                let newUser = new user_model_1.default({
-                    email: message.user.email,
-                    name: message.user.name,
-                    picture: message.user.picture
-                });
-                newUser.save((err, userDB) => {
-                    if (err)
-                        throw err;
-                    return userDB;
-                });
-            }
-            else {
-                return userDB;
-            }
+            return userDB;
         });
-        if (user) {
+        if (user !== null) {
             // Crear Mensaje
             return yield message_model_1.default.create({
                 text: message.text,

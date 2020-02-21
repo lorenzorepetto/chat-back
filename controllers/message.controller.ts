@@ -19,22 +19,10 @@ async function CreateMessage (message: ICreateMessageInput){
   // Buscar usuario
   let user = await User.findOne({ email: message.user.email }, (err, userDB) => {
     if (err) throw err;
-    if (!userDB) {
-      let newUser = new User({
-        email: message.user.email,
-        name: message.user.name,
-        picture: message.user.picture
-      })
-      newUser.save( (err, userDB) => {
-        if (err) throw err;
-        return  userDB;
-      })
-    } else {
-      return userDB
-    }
+    return userDB
   })
 
-  if (user) {
+  if (user !== null) {
     // Crear Mensaje
     return await Message.create({
         text: message.text,

@@ -16,26 +16,31 @@ const user_model_1 = __importDefault(require("../models/user.model"));
 //===============================================
 //                  FUNCTIONS
 //===============================================
-// Create
-function CreateUser({ email, name }) {
+function CreateUser(userInput) {
     return __awaiter(this, void 0, void 0, function* () {
-        return user_model_1.default.create({ email, name })
-            .then((data) => {
-            return data;
-        })
-            .catch((error) => {
-            throw error;
-        });
-    });
-}
-// Retrieve
-function GetUser(email) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return user_model_1.default.find({ email }, (err, data) => {
-            if (err) {
-                throw err;
-            }
-            return data;
+        // Buscar usuario
+        return new Promise((resolve, reject) => {
+            user_model_1.default.findOne({ email: userInput.email }, (err, userDB) => {
+                if (err)
+                    reject(err);
+                if (!userDB) {
+                    // No lo encuentró, crea uno
+                    let newUser = new user_model_1.default({
+                        email: userInput.email,
+                        name: userInput.name,
+                        picture: userInput.picture
+                    });
+                    newUser.save((err, userDB) => {
+                        if (err)
+                            reject(err);
+                        resolve(userDB);
+                    });
+                }
+                else {
+                    //Lo encontró y se retorna
+                    resolve(userDB);
+                }
+            });
         });
     });
 }
@@ -43,5 +48,5 @@ function GetUser(email) {
 //                  EXPORTS
 //===============================================
 exports.default = {
-    CreateUser, GetUser
+    CreateUser
 };

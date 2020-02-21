@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const user_list_1 = require("../classes/user-list");
 const user_socket_1 = require("../classes/user-socket");
 const message_controller_1 = __importDefault(require("../controllers/message.controller"));
+const user_controller_1 = __importDefault(require("../controllers/user.controller"));
 // Lista
 exports.users = new user_list_1.UserList();
 //===============================================
@@ -40,10 +41,19 @@ exports.disconnect = (client, io) => {
 // Configurar usuario
 exports.setUser = (client, io) => {
     client.on('set-user', (payload) => {
+        // Setear usuario
         exports.users.setUser(client.id, payload);
-        // unirse a la sala
-        client.join(payload.room_id);
-        io.to(payload.room_id).emit('active-users', exports.users.getUsersInRoom(payload.room_id));
+        // Crearlo en la db
+        user_controller_1.default.CreateUser(payload)
+            .then(() => {
+            // unirse a la sala
+            client.join(payload.room_id);
+            io.to(payload.room_id).emit('active-users', exports.users.getUsersInRoom(payload.room_id));
+        })
+            .catch(err => {
+            console.log(err);
+            io.to(client.id).emit('set-user-callback', { error: err });
+        });
     });
 };
 // Cambiar estado
