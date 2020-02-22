@@ -56,11 +56,18 @@ async function DeleteMessage (message_id: IMessage['_id']) {
 }
 
 
-async function DeleteAllMessagesInRoomBy (email: IUser['email'], room_id: IMessage['room']) {
+async function DeleteAllMessagesInRoomBy (email: IUser['email'], room_id: IMessage['room']) { 
   return new Promise( (resolve, reject) => {
-    Message.deleteMany({ room: room_id }, (err) => {
+    User.findOne({ email }, (err, user) => {
       if (err) reject(err);
-      resolve();
+      if( user ) {
+        Message.deleteMany({ room: room_id, user: user._id }, (err) => {
+          if (err) reject(err);
+          resolve();
+        })
+      } else {
+        reject();
+      }
     })
   }) 
 }

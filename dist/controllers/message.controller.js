@@ -60,10 +60,19 @@ function DeleteMessage(message_id) {
 function DeleteAllMessagesInRoomBy(email, room_id) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
-            message_model_1.default.deleteMany({ room: room_id }, (err) => {
+            user_model_1.default.findOne({ email }, (err, user) => {
                 if (err)
                     reject(err);
-                resolve();
+                if (user) {
+                    message_model_1.default.deleteMany({ room: room_id, user: user._id }, (err) => {
+                        if (err)
+                            reject(err);
+                        resolve();
+                    });
+                }
+                else {
+                    reject();
+                }
             });
         });
     });
